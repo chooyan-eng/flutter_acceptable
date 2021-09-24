@@ -1,0 +1,21 @@
+name: acceptable
+description: A Flutter package providing AcceptableStatefulWidget which glues Provider and StatefulWidget
+version: 0.1.0
+homepage: https://github.com/chooyan-eng/flutter_acceptable
+
+environment:
+  sdk: ">=2.12.0 <3.0.0"
+  flutter: ">=1.17.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  provider: ^6.0.0
+  collection: ^1.15.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^1.0.0
+
+flutter:
