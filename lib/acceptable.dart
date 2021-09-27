@@ -8,9 +8,15 @@ typedef Watch<Value, T> = T Function(Value);
 /// Function for applying provided data into state for UI
 typedef Apply<T> = void Function(T);
 
+/// Function for perform *after* build method is completed
+typedef Perform<T> = void Function(T);
+
 /// Function for performing accepting mechanism.
-typedef Accept = void Function<Value, T>(
-    {required Watch<Value, T> watch, required Apply<T> apply});
+typedef Accept = void Function<Value, T>({
+  required Watch<Value, T> watch,
+  Apply<T>? apply,
+  Perform<T>? perform,
+});
 
 /// Function for testing [Apply] should be called when depencencies change.
 typedef ShouldApply<Value> = bool Function(Value);
@@ -76,10 +82,8 @@ class _AcceptableStatefulElement extends StatefulElement {
       assert(state is AcceptableStatefulWidgetState);
 
       final acceptableState = state as AcceptableStatefulWidgetState;
-      acceptableState.acceptProviders(<Value, T>({
-        required watch,
-        required apply,
-      }) {
+      acceptableState
+          .acceptProviders(<Value, T>({required watch, apply, perform}) {
         // depend on Value here to receive its changes.
         final original = watch(Provider.of<Value>(this));
         final shouldApply = (Value newValue) {
@@ -88,7 +92,8 @@ class _AcceptableStatefulElement extends StatefulElement {
         };
 
         _applyLogics.add(
-          _ApplyLogic<Value, T>(apply, watch, shouldApply)..applyValue(this),
+          _ApplyLogic<Value, T>(apply, perform, watch, shouldApply)
+            ..applyValue(this),
         );
       });
     }
@@ -110,7 +115,10 @@ class _AcceptableStatefulElement extends StatefulElement {
 
 class _ApplyLogic<Value, T> {
   /// Function for apply given data to UI
-  final Apply<T> apply;
+  final Apply<T>? apply;
+
+  /// Function for call after build
+  final Perform<T>? perform;
 
   /// Function for select what data of Value to watch.
   final Watch<Value, T> watch;
@@ -118,7 +126,7 @@ class _ApplyLogic<Value, T> {
   /// Function to determin if watching data is changed or not.
   ShouldApply<Value> shouldApply;
 
-  _ApplyLogic(this.apply, this.watch, this.shouldApply);
+  _ApplyLogic(this.apply, this.perform, this.watch, this.shouldApply);
 
   bool callShouldApply(BuildContext context) => shouldApply(_read(context));
   void updateShouldApply(BuildContext context) {
@@ -131,6 +139,13 @@ class _ApplyLogic<Value, T> {
     };
   }
 
-  void applyValue(BuildContext context) => apply(watch(_read(context)));
+  void applyValue(BuildContext context) {
+    final watching = watch(_read(context));
+    apply?.call(watching);
+
+    WidgetsBinding.instance
+        ?.addPostFrameCallback((_) => perform?.call(watching));
+  }
+
   Value _read(BuildContext context) => context.read<Value>();
 }

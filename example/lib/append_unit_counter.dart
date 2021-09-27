@@ -18,6 +18,16 @@ class _AppendUnitCounterState
     accept<CounterState, int>(
       watch: (state) => state.value,
       apply: (value) => _value = '$value HITS',
+      perform: (value) {
+        if (value == 10) {
+          showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+              content: Text('$value'),
+            ),
+          );
+        }
+      },
     );
   }
 
