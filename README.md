@@ -35,6 +35,9 @@ class _MultipleCounterState
     accept<CounterState, int>(
       watch: (state) => state.value,
       apply: (value) => _value = value * 2,
+      perform: (value) {
+        // call imperative methods such as showDialog()
+      }
     );
   }
 
@@ -62,6 +65,9 @@ This method is quite similar to `context.select<Value, T>()` of `provider` packa
 In the example above, `value` is doubled and assigned to `_value` field of State. Then `_value` is used in the `build` method.
 
 As `apply` is called before `build` is called when observing value is changed, you don't need to convert provided value in `build` method. 
+
+### perform
+`perform` is called *after* rebuild is completed. Imperative methods, such as `showDialog`, `Navigator.push`, can be called here using current value of state objects.
 
 ## Motivation
 
